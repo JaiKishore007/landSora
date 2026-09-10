@@ -12,15 +12,16 @@ Landsora is engineered as a modern, full-stack, type-safe decision-support syste
 ```mermaid
 graph TB
     subgraph EdgeLayer["1. Physical Edge & Field Nodes (ESP32)"]
-        ESP1["Sensor Node KDG-03<br/>(Kodagu, Karnataka)"]
-        ESP2["Sensor Node WND-04<br/>(Wayanad, Kerala)"]
-        ESP3["Sensor Node CKM-01<br/>(Chikkamagaluru)"]
-        Sensors["Sensors: Rain, Soil, IMU, BME280"] --> ESP1
+        ESP1["Sensor Node KDG-03\n(Kodagu, Karnataka)"]
+        ESP2["Sensor Node WND-04\n(Wayanad, Kerala)"]
+        ESP3["Sensor Node CKM-01\n(Chikkamagaluru)"]
+        Sensors["Sensors: Rain, Soil, IMU, BME280"]
+        Sensors --> ESP1
     end
 
     subgraph IngestLayer["2. Ingestion & Communication Gateway"]
-        REST["REST API<br/>/api/telemetry/ingest"]
-        MQTT["MQTT Broker<br/>TLS Port 8883"]
+        REST["REST API\n/api/telemetry/ingest"]
+        MQTT["MQTT Broker\nTLS Port 8883"]
         ESP1 -->|HTTP POST / JSON| REST
         ESP2 -->|MQTT MQTTS| MQTT
         MQTT --> REST
@@ -41,36 +42,48 @@ graph TB
         ST["Soil Moisture & Saturation (0-100)"]
         TL["Slope Tilt & Drift (0-100)"]
         HS["Geological Baseline Score (0-100)"]
-        NASA_SVC["NASA EONET v3 Service<br/>(5-min Cached)"]
-        
-        V5 --> RF & ST & TL
-        NASA_SVC --> RE["Recent Event Score (0-100)"]
-        
-        RF & ST & TL & HS & RE --> Calc["Deterministic Risk Math<br/>Score: 0 - 100<br/>Level: LOW / MOD / HIGH / CRITICAL"]
+        NASA_SVC["NASA EONET v3 Service\n(5-min Cached)"]
+        RE["Recent Event Score (0-100)"]
+
+        V5 --> RF
+        V5 --> ST
+        V5 --> TL
+        NASA_SVC --> RE
+
+        RF --> Calc["Deterministic Risk Math\nScore: 0 - 100\nLevel: LOW / MOD / HIGH / CRITICAL"]
+        ST --> Calc
+        TL --> Calc
+        HS --> Calc
+        RE --> Calc
     end
 
     subgraph AiIntelligence["5. Explainable AI & Translation Layer"]
-        Gemini["Google Gemini 3.5 Flash<br/>(@google/genai)"]
-        SearchGround["Google Search Grounding Tool<br/>(IMD & GSI Bulletins)"]
-        MapsGround["Google Maps Grounding Tool<br/>(Ghats & Pass Corridors)"]
-        Translate["Indic Multilingual Engine<br/>(KN, TA, TE, ML, HI, EN)"]
-        
+        Gemini["Google Gemini 3.5 Flash\n(@google/genai)"]
+        SearchGround["Google Search Grounding Tool\n(IMD & GSI Bulletins)"]
+        MapsGround["Google Maps Grounding Tool\n(Ghats & Pass Corridors)"]
+        Translate["Indic Multilingual Engine\n(KN, TA, TE, ML, HI, EN)"]
+
         Calc --> Gemini
-        Gemini <--> SearchGround & MapsGround
+        Gemini <--> SearchGround
+        Gemini <--> MapsGround
         Gemini --> Translate
     end
 
     subgraph PresentationLayer["6. Client Console (React 19 + Vite + Tailwind 4)"]
-        GIS["Interactive GIS Terrain Map<br/>(India Coordinate Projection)"]
+        GIS["Interactive GIS Terrain Map\n(India Coordinate Projection)"]
         Gauges["4-Factor Risk Gauges & Sparks"]
         Sandbox["7-Scenario Storm Sandbox"]
         CitizenQ["Offline Citizen Report Queue"]
         Siren["1-Click Operator Siren Dispatch"]
-        
-        Calc --> Gauges & Sandbox
-        Gemini --> GIS & Gauges
-        CitizenQ <--> PresentationLayer
+
+        Calc --> Gauges
+        Calc --> Sandbox
+        Gemini --> GIS
+        Gemini --> Gauges
+        CitizenQ <--> GIS
     end
+
+ 
 ```
 
 ---
